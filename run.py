@@ -20,7 +20,7 @@ def get_up_avs(mid):
         if not res:
             break
         data = res['data']
-        av_list.extend(data['vlist'])
+        av_list.extend([v['aid'] for v in data['vlist']])
         if data['pages'] == page:
             break
     return av_list
@@ -62,8 +62,7 @@ def secure_string(string):
 def main():
     av_list = get_up_avs(UP_ID)
     av_list.extend(AV_ID)
-    for av in av_list:
-        aid = av['aid'] if isinstance(av, dict) else av
+    for aid in av_list:
         video_data = get_video_by_aid(aid)
         title = secure_string(video_data['title'])
         owner = video_data['owner']
@@ -84,6 +83,7 @@ def main():
 
 
 def download_video(url, filename, headers=None):
+    print(f'{filename} download start')
     r = HttpTool.get(url, headers=headers, retFormat='raw')
     if not r:
         print(f'{filename} download fail')
