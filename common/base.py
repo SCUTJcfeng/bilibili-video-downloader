@@ -10,5 +10,6 @@ def _create_folder(path):
 
 
 def create_folder(*args):
-    for i in range(len(args)):
-        _create_folder(os.path.join(args[: i + 1]))
+    arg_list = list(args)
+    for i in range(len(arg_list)):
+        _create_folder(os.path.join(*arg_list[: i + 1]))

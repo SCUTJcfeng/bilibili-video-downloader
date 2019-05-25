@@ -5,7 +5,7 @@ from common.http import HttpTool
 from common.save import SaveTool
 from common.url import headers
 from common.base import create_folder
-from api import build_av_info_url, build_submit_av_list_url, build_video_dm_url, build_video_info_url
+from api import build_av_info_url, build_submit_videos_url, build_video_dm_url, build_video_info_url
 from config import AV_ID, UP_ID, BASE_DIR
 
 # video_url = 'http://cn-zjwz-dx-v-03.acgvideo.com/upgcxcode/09/90/68089009/68089009-1-30080.m4s?expires=1558778400&platform=pc&ssig=bL_Fi9FiMWtl4fdRdOFKxg&oi=1901560625&nfa=uTIiNt+AQjcYULykM2EttA==&dynamic=1&trid=889e29e8bf5945d297dcd9b89c7722cd&nfb=maPYqpoel5MI3qOUX6YpRA==&nfc=1&mid=9854182'
@@ -14,21 +14,39 @@ from config import AV_ID, UP_ID, BASE_DIR
 
 
 def get_up_avs(mid):
-    av_list = {}
-    pass
+    av_list = []
+    page = 0
+    while True:
+        page += 1
+        av_url = build_submit_videos_url(mid, page)
+        res = HttpTool.get(av_url, retFormat='json')
+        if not res:
+            break
+        data = res['data']
+        av_list.extend(data['vlist'])
+        if data['pages'] == page:
+            break
     return av_list
 
 
 def get_video_by_aid(aid):
     video_data = {}
-    pass
+    url = build_av_info_url(aid)
+    res = HttpTool.get(url, retFormat='json')
+    if res and res['code'] == 0:
+        video_data = res['data']
     return video_data
 
 
 def get_video_link(aid, cid):
     video_link = ''
     sound_link = ''
-    pass
+    url = build_video_info_url(aid, cid)
+    res = HttpTool.get(url, retFormat='json')
+    if res and res['code'] == 0:
+        dash = res['data']['dash']
+        video_link = dash['video'][-1]['baseUrl']
+        sound_link = dash['audio'][1]['baseUrl']
     return video_link, sound_link
 
 
@@ -44,7 +62,7 @@ def main():
             cid = video['cid']
             part = video['part']
             video_link, sound_link = get_video_link(aid, cid)
-            create_folder([BASE_DIR, f'{mid}_{author}', f'{aid}_{title}'])
+            create_folder(BASE_DIR, f'{mid}_{author}', f'{aid}_{title}')
             video_name, sound_name = f'{cid}_{title}_{part}.mp4', f'{cid}_{title}_{part}.m4a'
             download_video(video_link, video_name, sound_link, sound_name)
 
