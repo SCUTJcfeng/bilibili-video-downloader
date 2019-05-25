@@ -2,3 +2,6 @@ pycache
 *.vscode
 *.png
 *.mp4
+*.xml
+*.idea
+*.pyc
