@@ -1,3 +1,4 @@
+dist: trusty
 lauguage: python
 python:
   - "3.6"
