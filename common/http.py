@@ -2,6 +2,7 @@
 
 import traceback
 import requests
+from requests.exceptions import Timeout
 import urllib3
 urllib3.disable_warnings()
 
@@ -12,7 +13,7 @@ class HttpTool:
         res = None
         try:
             res = requests.get(url, params=params, headers=headers, timeout=timeout)
-        except:
+        except Timeout:
             traceback.print_exc()
         return HttpTool.beforeReturn(res, retFormat)
 
@@ -21,7 +22,7 @@ class HttpTool:
         res = None
         try:
             res = requests.post(url, data=data, json=json, headers=headers, timeout=timeout, verify=verify)
-        except:
+        except Timeout:
             traceback.print_exc()
         return HttpTool.beforeReturn(res, retFormat)
 
