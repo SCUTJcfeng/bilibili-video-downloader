@@ -48,6 +48,7 @@ def get_video_link(aid, cid):
             sound_link = dash['audio'][1]['baseUrl']
         elif 'durl' in data:
             video_link = data['durl'][0]['url']
+            video_link = [d['url'] for d in data['durl']]
     return video_link, sound_link
 
 
@@ -75,7 +76,14 @@ def main():
             if not video_link or check_path(video_name):
                 print(f'{video_name} already exists or link is null')
             else:
-                download_video(video_link, video_name, headers=headers)
+                if isinstance(video_link, list):
+                    count = 1
+                    for url in video_link:
+                        v_name = create_path(path, f'{cid}_{title}_{part}_{count}.mp4')
+                        download_video(url, v_name, headers=headers)
+                        count += 1
+                else:
+                    download_video(video_link, video_name, headers=headers)
             if not sound_link or check_path(sound_name):
                 print(f'{sound_name} already exists or link is null')
             else:
