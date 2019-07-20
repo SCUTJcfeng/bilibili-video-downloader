@@ -7,4 +7,4 @@ install:
   - pipenv install --dev
 script:
   - pipenv run flake8 --ignore=E501
-  - pipenv run python test.py
+  - pipenv run python test_api.py
