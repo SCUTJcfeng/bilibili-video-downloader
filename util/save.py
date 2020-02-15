@@ -1,4 +1,3 @@
-# python3.6
 
 import csv
 import json

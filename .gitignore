@@ -1,8 +1,7 @@
-pycache
-*.vscode
+.idea
+.vscode
+__pycache__
+av/
 *.png
-*.mp4
-*.m4a
-*.xml
-*.idea
-*.pyc
+*.flv
+*.mp3
