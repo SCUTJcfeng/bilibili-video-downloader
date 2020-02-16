@@ -1,5 +1,5 @@
 
-from util import Request, HttpMethod
+from util import Request, HttpMethod, CONFIG
 
 
 class BilibiliApi:
@@ -62,8 +62,12 @@ class BilibiliApi:
             'qn': 80,
             'fnver': 0,
             'fnval': 16,
+            'session': CONFIG['SESSION'],
         }
-        return Request(url=url, method=HttpMethod.GET, params=params, headers=cls.HEADERS)
+        cookies = {
+            'SESSDATA': CONFIG['SESSION_DATA']
+        }
+        return Request(url=url, method=HttpMethod.GET, params=params, headers=cls.HEADERS, cookies=cookies)
 
     @classmethod
     def build_archive_api_request(cls, aid):
@@ -77,7 +81,6 @@ class BilibiliApi:
             'aid': aid
         }
         return Request(url=url, method=HttpMethod.GET, params=params, headers=cls.HEADERS)
-
 
     @classmethod
     def build_dm_api_request(cls, oid):

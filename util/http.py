@@ -15,7 +15,12 @@ class RequestUtil:
     @classmethod
     def do_request(cls, request, load_json=True):
         response = cls.session.request(
-            method=request.method, url=request.url, headers=request.headers, params=request.params, timeout=10)
+            method=request.method,
+            url=request.url,
+            headers=request.headers,
+            params=request.params,
+            cookies=request.cookies,
+            timeout=10)
         return cls.build_response(request, response, load_json)
 
     @classmethod
@@ -24,12 +29,13 @@ class RequestUtil:
 
 
 class Request:
-    def __init__(self, url, method=HttpMethod.GET, params=None, data=None, headers=None):
+    def __init__(self, url, method=HttpMethod.GET, params=None, data=None, headers=None, cookies=None):
         self._url = url
         self._method = method
         self._params = params
         self._data = data
         self._headers = headers
+        self._cookies = cookies
 
     @property
     def url(self):
@@ -50,6 +56,10 @@ class Request:
     @property
     def headers(self):
         return self._headers
+
+    @property
+    def cookies(self):
+        return self._cookies
 
 
 class Response:

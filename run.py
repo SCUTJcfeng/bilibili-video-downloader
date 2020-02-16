@@ -1,8 +1,6 @@
 
-from util import ConfigLoader, RequestUtil, SaveTool, PathUtil, secure_string
+from util import RequestUtil, SaveTool, PathUtil, secure_string, CONFIG
 from api import BilibiliApi
-
-config = ConfigLoader.load_config()
 
 
 class VideoDownload:
@@ -91,8 +89,9 @@ class VideoDownload:
         return download_list
 
     def download_video(self, url, filename):
-        final_filename = PathUtil.join_path(config['ROOT_PATH'], filename)
+        final_filename = PathUtil.join_path(CONFIG['ROOT_PATH'], filename)
         print(f'{final_filename} download start')
+        print(f'download link: {url}')
         request = BilibiliApi.build_video_download_request(url)
         response = RequestUtil.do_request(request, load_json=False)
         self.before_response(response)
@@ -104,5 +103,5 @@ class VideoDownload:
 
 
 if __name__ == '__main__':
-    for aid in config['AV_ID_LIST']:
+    for aid in CONFIG['AV_ID_LIST']:
         VideoDownload(aid).run()

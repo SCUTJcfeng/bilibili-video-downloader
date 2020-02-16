@@ -10,6 +10,8 @@ class ConfigLoader:
         return {
             'UP_ID_LIST': [],
             'AV_ID_LIST': [],
+            'SESSION': '',
+            'SESSDATA': '',
             'ROOT_PATH': os.path.dirname(config_file.__file__),
         }
 
@@ -33,3 +35,7 @@ def secure_string(string):
     string = string.replace('<', '-').replace('|', '1').replace('*', '.')
     string = string.replace(':', '.').replace('"', '\'').strip()
     return string
+
+
+# 全局 config 对象
+CONFIG = ConfigLoader.load_config()
