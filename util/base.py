@@ -1,6 +1,7 @@
 
 import os
 import time
+from .file import PathUtil
 
 
 class ConfigLoader:
@@ -10,9 +11,10 @@ class ConfigLoader:
         return {
             'UP_ID_LIST': [],
             'AV_ID_LIST': [],
-            'SESSION': '',
             'SESSDATA': '',
+            'ROOT_FOLDER': 'av',
             'ROOT_PATH': os.path.dirname(config_file.__file__),
+            'DOWNLOAD_PATH': '',
         }
 
     @classmethod
@@ -22,7 +24,13 @@ class ConfigLoader:
         for key in dir(config_file):
             if key.isupper():
                 config[key] = getattr(config_file, key)
+        cls.after_config(config)
         return config
+
+    @classmethod
+    def after_config(cls, config):
+        config['DOWNLOAD_PATH'] = PathUtil.join_path(config['ROOT_PATH'], config['ROOT_FOLDER'])
+        PathUtil.create_folder(config['ROOT_PATH'], config['ROOT_FOLDER'])
 
 
 def current_timestamp():

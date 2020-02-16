@@ -8,12 +8,11 @@ class VideoDownload:
         self.aid = aid
         self.cid_list = []
 
-    def build_filename(self, video_info, order, ext, video_format=None):
+    def build_filename(self, video_info, quality, order, ext):
         owner, title, part = video_info['owner'], video_info['title'], video_info['part']
-        filename = f'{owner}-{title}-{part}'
-        if video_format:
-            return secure_string(f'{filename}-{video_format}-{order}.{ext}')
-        return secure_string(f'{filename}-{order}.{ext}')
+        if order:
+            return secure_string(f'{owner}-{title}-{part}-{quality}-{order}.{ext}')
+        return secure_string(f'{owner}-{title}-{part}-{quality}.{ext}')
 
     def run(self):
         video_list = self.get_video_info()
@@ -22,10 +21,11 @@ class VideoDownload:
             for download_data in download_video_list:
                 for d_list in download_data['download_list']:
                     d_video, d_audio, d_order = d_list['video'], d_list['audio'], d_list['order']
-                    video_name = self.build_filename(video_info, d_order, 'flv', download_data['video_format'])
+                    video_name = self.build_filename(
+                        video_info, download_data['quality'], d_order, download_data['video_format'])
                     self.download_video(d_video, video_name)
                     if d_audio:
-                        audio_name = self.build_filename(video_info, d_order, 'mp3')
+                        audio_name = self.build_filename(video_info, download_data['quality'], d_order, 'mp3')
                         self.download_video(d_audio, audio_name)
 
     def before_response(self, response):
@@ -64,11 +64,11 @@ class VideoDownload:
 
     def _decode_video_download_info(self, download_info):
         download_list = []
-        video_format, quality = download_info['format'], download_info['quality']
+        quality = download_info['quality']
         if 'durl' in download_info:
             download_list.append({
                 'type': 'durl',
-                'video_format': video_format,
+                'video_format': 'flv',
                 'quality': quality,
                 'download_list': [
                     {'video': d['url'], 'audio': None, 'order': d['order']} for d in download_info['durl']
@@ -78,20 +78,22 @@ class VideoDownload:
             dash = download_info['dash']
             download_list.append({
                 'type': 'dash',
-                'video_format': video_format,
+                'video_format': 'mp4',
                 'quality': quality,
                 'download_list': [{
-                    'video': dash['video'][-1]['baseUrl'],
-                    'audio': dash['audio'][1]['baseUrl'],
-                    'order': 1
+                    'video': dash['video'][0]['base_url'],
+                    'audio': dash['audio'][0]['base_url'],
+                    'order': None
                 }],
             })
         return download_list
 
     def download_video(self, url, filename):
-        final_filename = PathUtil.join_path(CONFIG['ROOT_PATH'], filename)
-        print(f'{final_filename} download start')
-        print(f'download link: {url}')
+        final_filename = PathUtil.join_path(CONFIG['DOWNLOAD_PATH'], filename)
+        if PathUtil.check_path(final_filename):
+            print(f'{final_filename} exists, stop downloading')
+            return
+        print(f'{filename} download start')
         request = BilibiliApi.build_video_download_request(url)
         response = RequestUtil.do_request(request, load_json=False)
         self.before_response(response)

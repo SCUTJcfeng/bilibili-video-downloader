@@ -21,8 +21,8 @@ class PathUtil:
         return path
 
     @staticmethod
-    def join_path(base, filename):
-        return os.path.join(base, filename)
+    def join_path(base, *args):
+        return os.path.join(base, *args)
 
     @staticmethod
     def check_path(path):

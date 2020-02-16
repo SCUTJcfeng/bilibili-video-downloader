@@ -62,7 +62,6 @@ class BilibiliApi:
             'qn': 80,
             'fnver': 0,
             'fnval': 16,
-            'session': CONFIG['SESSION'],
         }
         cookies = {
             'SESSDATA': CONFIG['SESSION_DATA']

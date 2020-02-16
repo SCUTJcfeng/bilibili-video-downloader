@@ -1,7 +1,7 @@
 .idea
 .vscode
 __pycache__
-av/
-*.png
 *.flv
+*.mp4
 *.mp3
+config_template.py
