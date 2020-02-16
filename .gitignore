@@ -4,4 +4,4 @@ __pycache__
 *.flv
 *.mp4
 *.mp3
-config_template.py
+config_local.py

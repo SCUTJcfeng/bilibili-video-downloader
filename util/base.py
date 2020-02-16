@@ -19,11 +19,19 @@ class ConfigLoader:
 
     @classmethod
     def load_config(cls):
-        import config as config_file
-        config = cls.default_config(config_file)
-        for key in dir(config_file):
-            if key.isupper():
-                config[key] = getattr(config_file, key)
+        import config as config_prod
+        config = cls.default_config(config_prod)
+
+        def load_custom_config(file_):
+            for key in dir(file_):
+                if key.isupper():
+                    config[key] = getattr(file_, key)
+        load_custom_config(config_prod)
+        try:
+            import config_local
+            load_custom_config(config_local)
+        except ImportError:
+            pass
         cls.after_config(config)
         return config
 
