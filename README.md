@@ -4,7 +4,7 @@ a open-source bilibili video download project
 [![Build Status](https://travis-ci.org/SCUTJcfeng/bilibiliVideoDownloader.svg?branch=master)](https://travis-ci.org/SCUTJcfeng/bilibiliVideoDownloader)
 
 ## 说明
-支持按 `Up` 下载和按 `av` 号下载
+支持按 `Up` 下载和按 `av` 号下载， 支持 ffmpeg 自动合并视频
 
 ## 例子
 要下载凉风所有阅片无数的视频
@@ -20,13 +20,14 @@ ORDER = 'pubdate'
 ```
 
 ## requirement
-1. Python >= 3.6
+1. Python >= 3.6, ffmpeg(可选)
 2. `pip install pipenv` 安装 `pipenv`
 
 ## 配置
 1. 复制 `config.py` 为 `config_local.py`，在 `config_local.py`中修改配置
 2. `SESSION_DATA` 在登录状态下的网页 cookies 字段中获取（F12-Application），如图所示
 ![session-data.PNG](./session-data.png)
+3. 默认自动合并视频，可自定义 `ffmpeg` 路径
 
 ## 运行
 1. `pipenv install`

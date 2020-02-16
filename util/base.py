@@ -9,6 +9,8 @@ class ConfigLoader:
     @staticmethod
     def default_config(config_file):
         return {
+            'AUTO_MERGE': True,
+            'FFMPEG_PATH': 'ffmpeg',
             'UP_ID': None,
             'KEYWORD': None,
             'ORDER': 'pubdate',

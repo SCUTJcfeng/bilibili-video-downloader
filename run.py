@@ -1,5 +1,5 @@
 
-from util import RequestUtil, SaveTool, PathUtil, secure_string, CONFIG
+from util import RequestUtil, SaveTool, PathUtil, secure_string, CONFIG, FFmpegUtil
 from api import BilibiliApi
 
 
@@ -28,15 +28,35 @@ class VideoDownload(Base):
         video_list = self.get_video_info()
         for video_info in video_list:
             download_video_list = self.get_video_download_info(video_info['cid'])
+            video_name_list, audio_name_list = [], []
             for download_data in download_video_list:
                 for d_list in download_data['download_list']:
                     d_video, d_audio, d_order = d_list['video'], d_list['audio'], d_list['order']
                     video_name = self.build_filename(
                         video_info, download_data['quality'], d_order, download_data['video_format'])
-                    self.download_video(d_video, video_name)
+                    video_name = self.download_video(d_video, video_name)
+                    video_name_list.append(video_name)
                     if d_audio:
                         audio_name = self.build_filename(video_info, download_data['quality'], d_order, 'mp3')
-                        self.download_video(d_audio, audio_name)
+                        audio_name = self.download_video(d_audio, audio_name)
+                        audio_name_list.append(audio_name)
+            if CONFIG['AUTO_MERGE']:
+                output_video, output_audio = video_name_list[0], audio_name_list[0]
+                if len(video_name_list) > 1:
+                    output_video = self.merge_video(video_name_list[0], video_name_list[1:])
+                if len(audio_name_list) > 1:
+                    output_audio = self.merge_video(audio_name_list[0], audio_name_list[1:])
+                self.merge_video(output_video, output_audio)
+
+    def merge_video(self, video, *args):
+        tmp_list = video.split('/')
+        tmp_list[-1] = 'merge-' + tmp_list[-1]
+        output = '/'.join(tmp_list)
+        if PathUtil.check_path(output):
+            print(f'{output}已存在')
+            return
+        print('正在尝试合并视频，请参考控制台输出')
+        FFmpegUtil(CONFIG['FFMPEG_PATH']).merge(video, *args, output=output)
 
     def get_video_info(self):
         request = BilibiliApi.build_aid_api_request(self.aid)
@@ -93,12 +113,13 @@ class VideoDownload(Base):
         final_filename = PathUtil.join_path(CONFIG['DOWNLOAD_PATH'], filename)
         if PathUtil.check_path(final_filename):
             print(f'{final_filename} exists, stop downloading')
-            return
+            return final_filename
         print(f'{filename} download start')
         request = BilibiliApi.build_video_download_request(url)
         response = RequestUtil.do_request(request, load_json=False)
         self.before_response(response)
         self.save_video(response.raw_response, final_filename)
+        return final_filename
 
     def save_video(self, raw_response, filename):
         SaveTool.saveChunk(raw_response, filename)
