@@ -12,7 +12,7 @@ class BilibiliApi:
     }
 
     @classmethod
-    def build_oid_api_request(cls, mid, pn=1, ps=30, tid=0, order='pubdate', keyword=None):
+    def build_oid_api_request(cls, mid, pn=1, ps=100, tid=0, order='pubdate', keyword=None):
         """
         返回 up 所有的视频av 号
         :param mid: up id
@@ -23,7 +23,7 @@ class BilibiliApi:
         :param keyword:
         :return:
         """
-        url = cls.BASE_API_URL + '/space/arc/search'
+        url = cls.BASE_API_URL + '/x/space/arc/search'
         params = {
             'mid': mid,
             'pn': pn,

@@ -3,10 +3,20 @@ from util import RequestUtil, SaveTool, PathUtil, secure_string, CONFIG
 from api import BilibiliApi
 
 
-class VideoDownload:
+class Base:
+    def before_response(self, response):
+        if response.status_code != 200:
+            print(response.raw_response.text)
+            raise NotImplementedError
+        if response.code is not None and response.code != 0:
+            print(response.message)
+            raise NotImplementedError
+        return response
+
+
+class VideoDownload(Base):
     def __init__(self, aid):
         self.aid = aid
-        self.cid_list = []
 
     def build_filename(self, video_info, quality, order, ext):
         owner, title, part = video_info['owner'], video_info['title'], video_info['part']
@@ -27,15 +37,6 @@ class VideoDownload:
                     if d_audio:
                         audio_name = self.build_filename(video_info, download_data['quality'], d_order, 'mp3')
                         self.download_video(d_audio, audio_name)
-
-    def before_response(self, response):
-        if response.status_code != 200:
-            print(response.raw_response.text)
-            raise NotImplementedError
-        if response.code is not None and response.code != 0:
-            print(response.message)
-            raise NotImplementedError
-        return response
 
     def get_video_info(self):
         request = BilibiliApi.build_aid_api_request(self.aid)
@@ -104,6 +105,38 @@ class VideoDownload:
         print(f'{filename} download success')
 
 
+class VideoSearch(Base):
+    def __init__(self, up_id, order, keyword):
+        self.up_id = up_id
+        self.order = order
+        self.keyword = keyword
+
+    def get_aid_list(self):
+        if not all([self.up_id, self.order, self.keyword]):
+            print('UP_ID, ORDER, KEYWORD 信息不全，筛选退出')
+            return []
+        aid_list, page = [], 1
+        while True:
+            vlist = self.get_oid_info_by_page(page)
+            if not vlist:
+                break
+            aid_list.extend(vlist)
+            page += 1
+        print(f'按up：{self.up_id} 关键词：{self.keyword} 共找到{len(aid_list)}条相关视频')
+        return aid_list
+
+    def get_oid_info_by_page(self, page):
+        request = BilibiliApi.build_oid_api_request(self.up_id, page, order=self.order, keyword=self.keyword)
+        response = RequestUtil.do_request(request)
+        self.before_response(response)
+        return self._decode_oid_info(response.data)
+
+    def _decode_oid_info(self, data):
+        return [v['aid'] for v in data['list']['vlist']]
+
+
 if __name__ == '__main__':
+    for aid in VideoSearch(CONFIG['UP_ID'], CONFIG['ORDER'], CONFIG['KEYWORD']).get_aid_list():
+        VideoDownload(aid).run()
     for aid in CONFIG['AV_ID_LIST']:
         VideoDownload(aid).run()

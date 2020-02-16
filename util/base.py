@@ -9,7 +9,9 @@ class ConfigLoader:
     @staticmethod
     def default_config(config_file):
         return {
-            'UP_ID_LIST': [],
+            'UP_ID': None,
+            'KEYWORD': None,
+            'ORDER': 'pubdate',
             'AV_ID_LIST': [],
             'SESSDATA': '',
             'ROOT_FOLDER': 'av',

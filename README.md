@@ -6,6 +6,19 @@ a open-source bilibili video download project
 ## 说明
 支持按 `Up` 下载和按 `av` 号下载
 
+## 例子
+要下载凉风所有阅片无数的视频
+```python
+# up id，比如凉风 14110780
+UP_ID = 14110780
+
+# 关键词，如 KEYWORD = '阅片无数' 查看所有带有阅片无数标题的视频
+KEYWORD = '阅片无数'
+
+# 视频顺序，关联 up id 和 keyword，默认 pubdate，可选 最新发布 pubdate 和 最多播放 click、最多收藏 stow
+ORDER = 'pubdate'
+```
+
 ## requirement
 1. Python >= 3.6
 2. `pip install pipenv` 安装 `pipenv`
@@ -13,12 +26,11 @@ a open-source bilibili video download project
 ## 配置
 1. 复制 `config.py` 为 `config_local.py`，在 `config_local.py`中修改配置
 2. `SESSION_DATA` 在登录状态下的网页 cookies 字段中获取（F12-Application），如图所示
+![session-data.PNG](./session-data.png)
 
 ## 运行
 1. `pipenv install`
 2. `pipenv run python run.py`
-
-![session-data.PNG](./session-data.png)
 
 ## 输出
 ![output.jpg](./output.jpg)
