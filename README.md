@@ -1,7 +1,7 @@
 # bilibili Video Downloader
 a open-source bilibili video download project
 
-[![Build Status](https://travis-ci.org/SCUTJcfeng/bilibiliVideoDownloader.svg?branch=master)](https://travis-ci.org/SCUTJcfeng/bilibiliVideoDownloader)
+[![Build Status](https://travis-ci.org/SCUTJcfeng/bilibili-video-downloader.svg?branch=master)](https://travis-ci.org/SCUTJcfeng/bilibiliVideoDownloader)
 
 ## 说明
 支持按 `Up` 下载和按 `av` 号下载， 支持 ffmpeg 自动合并视频
