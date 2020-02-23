@@ -7,7 +7,7 @@ from .file import PathUtil
 class ConfigLoader:
 
     @staticmethod
-    def default_config(config_file):
+    def default_config(root_path):
         return {
             'AUTO_MERGE': True,
             'FFMPEG_PATH': 'ffmpeg',
@@ -17,14 +17,14 @@ class ConfigLoader:
             'AV_ID_LIST': [],
             'SESSDATA': '',
             'ROOT_FOLDER': 'av',
-            'ROOT_PATH': os.path.dirname(config_file.__file__),
+            'ROOT_PATH': os.path.dirname(root_path),
             'DOWNLOAD_PATH': '',
         }
 
     @classmethod
     def load_config(cls):
         import config as config_prod
-        config = cls.default_config(config_prod)
+        config = cls.default_config(config_prod.__file__)
 
         def load_custom_config(file_):
             for key in dir(file_):

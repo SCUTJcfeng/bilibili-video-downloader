@@ -54,9 +54,10 @@ class VideoDownload(Base):
         output = '/'.join(tmp_list)
         if PathUtil.check_path(output):
             print(f'{output}已存在')
-            return
+            return output
         print('正在尝试合并视频，请参考控制台输出')
         FFmpegUtil(CONFIG['FFMPEG_PATH']).merge(video, *args, output=output)
+        return output
 
     def get_video_info(self):
         request = BilibiliApi.build_aid_api_request(self.aid)
