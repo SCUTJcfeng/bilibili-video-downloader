@@ -1,4 +1,5 @@
 
+import hashlib
 from util import Request, HttpMethod, CONFIG
 
 
@@ -50,7 +51,7 @@ class BilibiliApi:
     @classmethod
     def build_cid_api_request(cls, avid, cid):
         """
-        获取视频下载信息
+        获取视频下载信息（因为需要session，略麻烦，暂时不用）
         :param avid:
         :param cid:
         :return:
@@ -67,6 +68,21 @@ class BilibiliApi:
             'SESSDATA': CONFIG['SESSION_DATA']
         }
         return Request(url=url, method=HttpMethod.GET, params=params, headers=cls.HEADERS, cookies=cookies)
+
+    @classmethod
+    def build_sign_cid_api_request(cls, cid, qn=80):
+        """
+        获取视频下载信息（旧版签名方式）
+        :param cid:
+        :param qn:
+        :return:
+        """
+        entropy = 'rbMCKn@KuamXWlPMoJGsKcbiJKUfkPF_8dABscJntvqhRSETg'
+        appkey, sec = ''.join([chr(ord(i) + 2) for i in entropy[::-1]]).split(':')
+        params = 'appkey=%s&cid=%s&otype=json&qn=%s&quality=%s&type=' % (appkey, cid, qn, qn)
+        chksum = hashlib.md5(bytes(params + sec, 'utf8')).hexdigest()
+        url = 'https://interface.bilibili.com/v2/playurl?%s&sign=%s' % (params, chksum)
+        return Request(url=url, method=HttpMethod.GET, params=params, headers=cls.HEADERS)
 
     @classmethod
     def build_archive_api_request(cls, aid):

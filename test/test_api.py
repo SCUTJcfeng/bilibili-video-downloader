@@ -64,6 +64,25 @@ class TestAPi:
             assert False
 
     @pytest.mark.api
+    @pytest.mark.parametrize('cid', [
+        1176840,
+        6718181
+    ])
+    def test_bilibili_sign_cid_api(self, cid):
+        request = BilibiliApi.build_sign_cid_api_request(cid)
+        response = RequestUtil.do_request(request)
+        assert response.status_code == 200
+        data = response.json
+        assert 'quality' in data
+        assert 'format' in data
+        if 'durl' in data:
+            assert isinstance(data['durl'], list)
+        elif 'dash' in data:
+            assert isinstance(data['dash'], dict)
+        else:
+            assert False
+
+    @pytest.mark.api
     @pytest.mark.parametrize('aid', [
         810872,
         4159781

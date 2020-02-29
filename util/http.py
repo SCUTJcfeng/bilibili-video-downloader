@@ -81,6 +81,10 @@ class Response:
         return self._raw_response.status_code
 
     @property
+    def json(self):
+        return self._json_data
+
+    @property
     def code(self):
         return self._json_data.get('code', None)
 
