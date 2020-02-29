@@ -27,7 +27,7 @@ class VideoDownload(Base):
     def run(self):
         video_list = self.get_video_info()
         for video_info in video_list:
-            download_video_list = self.get_video_download_info(video_info['cid'])
+            download_video_list = self.get_sign_video_download_info(video_info['cid'])
             video_name_list, audio_name_list = [], []
             for download_data in download_video_list:
                 for d_list in download_data['download_list']:
@@ -83,6 +83,12 @@ class VideoDownload(Base):
         response = RequestUtil.do_request(request)
         self.before_response(response)
         return self._decode_video_download_info(response.data)
+
+    def get_sign_video_download_info(self, cid):
+        request = BilibiliApi.build_sign_cid_api_request(cid)
+        response = RequestUtil.do_request(request)
+        self.before_response(response)
+        return self._decode_video_download_info(response.json)
 
     def _decode_video_download_info(self, download_info):
         download_list = []

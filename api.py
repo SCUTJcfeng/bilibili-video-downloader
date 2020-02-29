@@ -60,7 +60,7 @@ class BilibiliApi:
         params = {
             'avid': avid,
             'cid': cid,
-            'qn': 80,
+            'qn': 116,
             'fnver': 0,
             'fnval': 16,
         }
@@ -70,7 +70,7 @@ class BilibiliApi:
         return Request(url=url, method=HttpMethod.GET, params=params, headers=cls.HEADERS, cookies=cookies)
 
     @classmethod
-    def build_sign_cid_api_request(cls, cid, qn=80):
+    def build_sign_cid_api_request(cls, cid, qn=116):
         """
         获取视频下载信息（旧版签名方式）
         :param cid:
@@ -82,7 +82,10 @@ class BilibiliApi:
         params = 'appkey=%s&cid=%s&otype=json&qn=%s&quality=%s&type=' % (appkey, cid, qn, qn)
         chksum = hashlib.md5(bytes(params + sec, 'utf8')).hexdigest()
         url = 'https://interface.bilibili.com/v2/playurl?%s&sign=%s' % (params, chksum)
-        return Request(url=url, method=HttpMethod.GET, params=params, headers=cls.HEADERS)
+        cookies = {
+            'SESSDATA': CONFIG['SESSION_DATA']
+        }
+        return Request(url=url, method=HttpMethod.GET, params=params, headers=cls.HEADERS, cookies=cookies)
 
     @classmethod
     def build_archive_api_request(cls, aid):

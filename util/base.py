@@ -15,7 +15,7 @@ class ConfigLoader:
             'KEYWORD': None,
             'ORDER': 'pubdate',
             'AV_ID_LIST': [],
-            'SESSDATA': '',
+            'SESSION_DATA': '',
             'ROOT_FOLDER': 'av',
             'ROOT_PATH': os.path.dirname(root_path),
             'DOWNLOAD_PATH': '',
