@@ -13,13 +13,14 @@ class RequestUtil:
     session = sessions.Session()
 
     @classmethod
-    def do_request(cls, request, load_json=True):
+    def do_request(cls, request, load_json=True, stream=False):
         response = cls.session.request(
             method=request.method,
             url=request.url,
             headers=request.headers,
             params=request.params,
             cookies=request.cookies,
+            stream=stream,
             timeout=10)
         return cls.build_response(request, response, load_json)
 

@@ -26,7 +26,7 @@ ORDER = 'pubdate'
 ## 配置
 1. 复制 `config.py` 为 `config_local.py`，在 `config_local.py`中修改配置
 2. 大会员选项：`SESSION_DATA` 在登录状态下的网页 cookies 字段中获取（F12-Application），如图所示
-![session-data.PNG](./session-data.png)
+![session-data.PNG](./img/session-data.png)
 3. 默认自动合并视频，可自定义 `ffmpeg` 路径
 
 ## 运行
@@ -34,7 +34,7 @@ ORDER = 'pubdate'
 2. `pipenv run python run.py`
 
 ## 输出
-![output.jpg](./output.jpg)
+![bar.jpg](./img/bar.jpg)
 
 ## 补充说明
 

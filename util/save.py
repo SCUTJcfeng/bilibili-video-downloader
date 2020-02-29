@@ -2,6 +2,7 @@
 import csv
 import json
 import codecs
+from tqdm import tqdm
 
 
 class SaveTool:
@@ -17,10 +18,12 @@ class SaveTool:
     @staticmethod
     def saveChunk(r, filename):
         assert hasattr(r, '__iter__')
-        with open(filename, 'wb') as f:
-            for chunk in r.iter_content(chunk_size=1024):
-                if chunk:
-                    f.write(chunk)
+        with tqdm(total=int(r.headers['content-length']), unit='B', unit_scale=True, unit_divisor=1000) as bar:
+            with open(filename, 'wb') as f:
+                for chunk in r.iter_content(chunk_size=1024):
+                    if chunk:
+                        f.write(chunk)
+                    bar.update(len(chunk))
 
     @staticmethod
     def saveCSV(data, filename, header, encoding='utf8'):

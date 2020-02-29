@@ -123,7 +123,7 @@ class VideoDownload(Base):
             return final_filename
         print(f'{filename} download start')
         request = BilibiliApi.build_video_download_request(url)
-        response = RequestUtil.do_request(request, load_json=False)
+        response = RequestUtil.do_request(request, load_json=False, stream=True)
         self.before_response(response)
         self.save_video(response.raw_response, final_filename)
         return final_filename
