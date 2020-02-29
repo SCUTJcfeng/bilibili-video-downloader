@@ -1,9 +1,29 @@
-
 import hashlib
 from util import Request, HttpMethod, CONFIG
 
 
 class BilibiliApi:
+
+    STREAM_TYPES = [
+        {'id': 'flv_p60', 'quality': 116, 'audio_quality': 30280,
+         'container': 'flv', 'video_resolution': '1080p', 'desc': '高清 1080P60'},
+        {'id': 'hdflv2', 'quality': 112, 'audio_quality': 30280,
+         'container': 'flv', 'video_resolution': '1080p', 'desc': '高清 1080P+'},
+        {'id': 'flv', 'quality': 80, 'audio_quality': 30280,
+         'container': 'flv', 'video_resolution': '1080p', 'desc': '高清 1080P'},
+        {'id': 'flv720_p60', 'quality': 74, 'audio_quality': 30280,
+         'container': 'flv', 'video_resolution': '720p', 'desc': '高清 720P60'},
+        {'id': 'flv720', 'quality': 64, 'audio_quality': 30280,
+         'container': 'flv', 'video_resolution': '720p', 'desc': '高清 720P'},
+        {'id': 'hdmp4', 'quality': 48, 'audio_quality': 30280,
+         'container': 'mp4', 'video_resolution': '720p', 'desc': '高清 720P (MP4)'},
+        {'id': 'flv480', 'quality': 32, 'audio_quality': 30280,
+         'container': 'flv', 'video_resolution': '480p', 'desc': '清晰 480P'},
+        {'id': 'flv360', 'quality': 16, 'audio_quality': 30216,
+         'container': 'flv', 'video_resolution': '360p', 'desc': '流畅 360P'},
+    ]
+
+    QUALITY_EXT_MAP = {s['quality']: s for s in STREAM_TYPES}
 
     BASE_API_URL = 'https://api.bilibili.com'
     HEADERS = {

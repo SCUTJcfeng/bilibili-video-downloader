@@ -118,7 +118,5 @@ class TestAPi:
     ])
     def test_bilibili_download_api(self, aid, cid):
         instance = VideoDownload(aid)
-        download_video_list = instance.get_video_download_info(cid)
-        download_data = download_video_list[0]['download_list'][0]
-        video, audio = download_data['video'], download_data['audio']
-        assert video
+        download_data = instance.get_video_download_info(cid)
+        assert download_data is not None

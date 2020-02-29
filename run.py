@@ -1,4 +1,3 @@
-
 from util import RequestUtil, SaveTool, PathUtil, secure_string, CONFIG, FFmpegUtil
 from api import BilibiliApi
 
@@ -18,46 +17,54 @@ class VideoDownload(Base):
     def __init__(self, aid):
         self.aid = aid
 
-    def build_filename(self, video_info, quality, order, ext):
-        owner, title, part = video_info['owner'], video_info['title'], video_info['part']
-        if order:
-            return secure_string(f'{owner}-{title}-{part}-{quality}-{order}.{ext}')
-        return secure_string(f'{owner}-{title}-{part}-{quality}.{ext}')
-
     def run(self):
-        video_list = self.get_video_info()
+        title, owner, video_list = self.get_video_info()
+        if len(video_list) > 1:
+            print('检测到多p视频，将下载全部视频')
+        print('Owner:     ', owner)
+        print('Title:     ', title)
+        print('P_Num:     ', len(video_list))
         for video_info in video_list:
-            download_video_list = self.get_sign_video_download_info(video_info['cid'])
-            video_name_list, audio_name_list = [], []
-            for download_data in download_video_list:
-                for d_list in download_data['download_list']:
-                    d_video, d_audio, d_order = d_list['video'], d_list['audio'], d_list['order']
-                    video_name = self.build_filename(
-                        video_info, download_data['quality'], d_order, download_data['video_format'])
-                    video_name = self.download_video(d_video, video_name)
-                    video_name_list.append(video_name)
-                    if d_audio:
-                        audio_name = self.build_filename(video_info, download_data['quality'], d_order, 'mp3')
-                        audio_name = self.download_video(d_audio, audio_name)
-                        audio_name_list.append(audio_name)
-            if CONFIG['AUTO_MERGE']:
-                output_video, output_audio = video_name_list[0], audio_name_list[0]
-                if len(video_name_list) > 1:
-                    output_video = self.merge_video(video_name_list[0], video_name_list[1:])
-                if len(audio_name_list) > 1:
-                    output_audio = self.merge_video(audio_name_list[0], audio_name_list[1:])
-                self.merge_video(output_video, output_audio)
+            p_title, cid = video_info['part'], video_info['cid']
+            download_data = self.get_sign_video_download_info(cid)
+            print()
+            print('P_Title:   ', p_title)
+            print('Type:      ', download_data['type'])
+            download_list = download_data['download_list']
+            if download_data['type'] == 'durl':
+                ext = BilibiliApi.QUALITY_EXT_MAP[download_data['quality']]['container']
+                if len(download_list) == 1:
+                    output = self.build_filename(f'{owner}-{title}-{p_title}.{ext}')
+                    self.download_video(download_list[0], output)
+                    continue
+                print('检测到多段视频')
+                tmp_dl_list = []
+                for i, url in enumerate(download_list):
+                    tmp_video_name = self.build_filename(f'{owner}-{title}-{p_title}-{i}.{ext}')
+                    tmp_dl_list.append(tmp_video_name)
+                    self.download_video(url, tmp_video_name)
+                output = self.build_filename(f'{owner}-{title}-{p_title}.mp4')
+                self.merge_video(output, tmp_dl_list)
+            else:
+                ext = 'mp4'
+                output = f'{owner}-{title}-{p_title}.{ext}'
+                video_url, audio_url = download_list
+                if not audio_url:
+                    self.download_video(video_url, output)
+                    continue
+                tmp_video_name = self.build_filename(f'{owner}-{title}-{p_title}-video.{ext}')
+                self.download_video(video_url, tmp_video_name)
+                tmp_audio_name = self.build_filename(f'{owner}-{title}-{p_title}-audio.{ext}')
+                self.download_video(audio_url, tmp_audio_name)
+                tmp_dl_list = [tmp_video_name, tmp_audio_name]
+                self.merge_video(output, tmp_dl_list)
 
-    def merge_video(self, video, *args):
-        tmp_list = video.split('/')
-        tmp_list[-1] = 'merge-' + tmp_list[-1]
-        output = '/'.join(tmp_list)
+    def merge_video(self, output, *files):
         if PathUtil.check_path(output):
             print(f'{output}已存在')
-            return output
+            return
         print('正在尝试合并视频，请参考控制台输出')
-        FFmpegUtil(CONFIG['FFMPEG_PATH']).merge(video, *args, output=output)
-        return output
+        FFmpegUtil(CONFIG['FFMPEG_PATH']).merge(*files, output=output)
 
     def get_video_info(self):
         request = BilibiliApi.build_aid_api_request(self.aid)
@@ -71,12 +78,10 @@ class VideoDownload(Base):
         for page in video_info['pages']:
             cid, part = page['cid'], page['part']
             video_list.append({
-                'title': title,
-                'owner': owner,
                 'part': part,
                 'cid': cid,
             })
-        return video_list
+        return title, owner, video_list
 
     def get_video_download_info(self, cid):
         request = BilibiliApi.build_cid_api_request(self.aid, cid)
@@ -91,42 +96,41 @@ class VideoDownload(Base):
         return self._decode_video_download_info(response.json)
 
     def _decode_video_download_info(self, download_info):
-        download_list = []
-        quality = download_info['quality']
+        quality, format_ = download_info['quality'], download_info['format']
+        download_data = {'format': format_, 'quality': quality, 'type': '', 'download_list': []}
         if 'durl' in download_info:
-            download_list.append({
-                'type': 'durl',
-                'video_format': 'flv',
-                'quality': quality,
-                'download_list': [
-                    {'video': d['url'], 'audio': None, 'order': d['order']} for d in download_info['durl']
-                ],
-            })
+            download_data['type'] = 'durl'
+            download_data['download_list'] = [d['url'] for d in download_info['durl']]
         elif 'dash' in download_info:
             dash = download_info['dash']
-            download_list.append({
-                'type': 'dash',
-                'video_format': 'mp4',
-                'quality': quality,
-                'download_list': [{
-                    'video': dash['video'][0]['base_url'],
-                    'audio': dash['audio'][0]['base_url'],
-                    'order': None
-                }],
-            })
-        return download_list
+            download_data['type'] = 'dash'
+            download_data['download_list'] = [dash['video'][0]['base_url'], dash['audio'][0]['base_url']]
+        else:
+            raise NotImplementedError
+        return download_data
+
+    def build_filename(self, filename):
+        return PathUtil.join_path(CONFIG['DOWNLOAD_PATH'], filename)
 
     def download_video(self, url, filename):
-        final_filename = PathUtil.join_path(CONFIG['DOWNLOAD_PATH'], filename)
-        if PathUtil.check_path(final_filename):
-            print(f'{final_filename} exists, stop downloading')
-            return final_filename
+        if PathUtil.check_path(filename):
+            print(f'{filename} exists, stop downloading')
+            return
         print(f'{filename} download start')
-        request = BilibiliApi.build_video_download_request(url)
-        response = RequestUtil.do_request(request, load_json=False, stream=True)
-        self.before_response(response)
-        self.save_video(response.raw_response, final_filename)
-        return final_filename
+        retry_times = 2
+        while retry_times > 0:
+            try:
+                request = BilibiliApi.build_video_download_request(url)
+                response = RequestUtil.do_request(request, load_json=False, stream=True)
+                self.before_response(response)
+                self.save_video(response.raw_response, filename)
+                break
+            except:
+                print(f'{filename} download fail, retry times = {retry_times}, restart...')
+                retry_times -= 1
+                if retry_times == 0:
+                    raise Exception('retry times exceed, stop downloading...')
+                continue
 
     def save_video(self, raw_response, filename):
         SaveTool.saveChunk(raw_response, filename)
