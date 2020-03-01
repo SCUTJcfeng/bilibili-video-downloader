@@ -118,14 +118,14 @@ class VideoDownload(Base):
         return self._decode_video_download_info(response.json)
 
     def _decode_video_download_info(self, download_info):
-        quality, format_ = download_info['quality'], download_info['format']
-        download_data = {'format': format_, 'quality': quality, 'type': '', 'download_list': []}
+        download_data = {'quality': download_info['quality'], 'type': '', 'download_list': []}
         if 'durl' in download_info:
             download_data['type'] = 'durl'
             download_data['download_list'] = [d['url'] for d in download_info['durl']]
         elif 'dash' in download_info:
             dash = download_info['dash']
             download_data['type'] = 'dash'
+            download_data['quality'] = dash['video'][0]['id']
             download_data['download_list'] = [dash['video'][0]['base_url'], dash['audio'][0]['base_url']]
         else:
             raise NotImplementedError
