@@ -6,6 +6,13 @@ a open-source bilibili video download project
 ## 说明
 1. 支持最高1080p60的清晰度，支持按 `Up` 下载和按 `av` 号下载， 支持 ffmpeg 自动合并视频
 2. 自动下载弹幕，格式为 `xml`，支持[在线弹幕转换](http://tiansh.github.io/us-danmaku/bilibili/)
+3. 支持弹幕反查功能
+```shell
+# 例子
+python crc_crack.py bbf72379
+# 8840034
+# 耗时: 0.02秒
+```
 
 ## 例子
 要下载凉风所有阅片无数的视频
