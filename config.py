@@ -1,7 +1,4 @@
 
-# 是否自动合并音视频，默认为是
-# AUTO_MERGE = True
-
 # 自定义 ffmpeg 路径
 # FFMPEG_PATH = 'ffmpeg'
 

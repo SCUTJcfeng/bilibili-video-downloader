@@ -22,6 +22,7 @@ ORDER = 'pubdate'
 ## requirement
 1. Python >= 3.6, ffmpeg(可选)
 2. `pip install pipenv` 安装 `pipenv`
+3. 安装 `ffmpeg`
 
 ## 配置
 1. 复制 `config.py` 为 `config_local.py`，在 `config_local.py`中修改配置
@@ -41,7 +42,6 @@ ORDER = 'pubdate'
 暂无
 
 ### 清晰度
-1. 所有下载的视频文件的文件名都有清晰度的说明如下：
 
 | 清晰度 | 视频规格   |
 |--------|:-----------|
@@ -53,11 +53,3 @@ ORDER = 'pubdate'
 | 48     | 720P (MP4) |
 | 32     | 480p       |
 | 16     | 360p       |
-
-2. 另外 mp4 、mp3格式(如av60005360)对应 m4s，特点是音视频分离，可使用 `FFmpeg` 或其它视频编辑工具合并
-
-### 音视频合并
-脚本如下
-```shell script
-ffmpeg -i 视频.mp4 -i 音频.mp3 合并视频.mp4
-```

@@ -1,4 +1,5 @@
-from util import RequestUtil, SaveTool, PathUtil, secure_string, CONFIG, FFmpegUtil
+from util import RequestUtil, SaveTool, PathUtil, CONFIG, FFmpegUtil
+from util.fs import legitimize
 from api import BilibiliApi
 
 
@@ -30,6 +31,7 @@ class VideoDownload(Base):
             print()
             print('P_Title:   ', p_title)
             print('Type:      ', download_data['type'])
+            print('Quality:   ', BilibiliApi.QUALITY_EXT_MAP[download_data['quality']]['desc'])
             download_list = download_data['download_list']
             if download_data['type'] == 'durl':
                 ext = BilibiliApi.QUALITY_EXT_MAP[download_data['quality']]['container']
@@ -110,13 +112,12 @@ class VideoDownload(Base):
         return download_data
 
     def build_filename(self, filename):
-        return PathUtil.join_path(CONFIG['DOWNLOAD_PATH'], filename)
+        return PathUtil.join_path(CONFIG['DOWNLOAD_PATH'], legitimize(filename))
 
     def download_video(self, url, filename):
         if PathUtil.check_path(filename):
             print(f'{filename} exists, stop downloading')
             return
-        print(f'{filename} download start')
         retry_times = 2
         while retry_times > 0:
             try:
@@ -134,7 +135,6 @@ class VideoDownload(Base):
 
     def save_video(self, raw_response, filename):
         SaveTool.saveChunk(raw_response, filename)
-        print(f'{filename} download success')
 
 
 class VideoSearch(Base):
