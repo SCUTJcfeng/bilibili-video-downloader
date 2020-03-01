@@ -29,7 +29,8 @@ class VideoDownload(Base):
             print('检测到多p视频，将下载全部视频')
         print()
 
-    def print_pinfo(self, p_title, type_, quality):
+    def print_pinfo(self, page, p_title, type_, quality):
+        print('P:         ', page)
         print('P_Title:   ', p_title)
         print('Type:      ', type_)
         print('Quality:   ', quality)
@@ -42,47 +43,56 @@ class VideoDownload(Base):
             filename = f'{self.owner}-{self.title}（P{i}.{p_title}）.{ext}'
         if j is not None:
             filename = f'[{j}]-{filename}'
+        filename = f'{filename}.download'
         return PathUtil.join_path(CONFIG['DOWNLOAD_PATH'], legitimize(filename))
+
+    def remove_download(self, output):
+        filepath = output.replace('.download', '')
+        PathUtil.rename(output, filepath)
+        return filepath
 
     def run(self):
         video_list = self.get_video_info()
         self.print_vinfo()
-        for i, video_info in enumerate(video_list):
-            p_title, cid = video_info['part'], video_info['cid']
+        for video_info in video_list:
+            p_title, cid, page = video_info['part'], video_info['cid'], video_info['page']
             download_data = self.get_sign_video_download_info(cid)
-            self.print_pinfo(p_title, download_data['type'], BilibiliApi.QUALITY_EXT_MAP[download_data['quality']]['desc'])
+            stream_type = BilibiliApi.QUALITY_EXT_MAP[download_data['quality']]
+            self.print_pinfo(page, p_title, download_data['type'], stream_type['desc'])
             download_list = download_data['download_list']
             if download_data['type'] == 'durl':
-                ext = BilibiliApi.QUALITY_EXT_MAP[download_data['quality']]['container']
+                ext = stream_type['container']
                 if len(download_list) == 1:
-                    output = self.build_filename(p_title, i, ext)
+                    output = self.build_filename(p_title, page, ext)
                     self.download_video(download_list[0], output)
-                    continue
-                print('检测到多段视频')
-                tmp_dl_list = []
-                for j, url in enumerate(download_list):
-                    tmp_video_name = self.build_filename(p_title, i, ext, j)
-                    tmp_dl_list.append(tmp_video_name)
-                    self.download_video(url, tmp_video_name)
-                output = self.build_filename(p_title, i, 'mp4')
-                self.merge_video(output, tmp_dl_list)
+                else:
+                    print('检测到多段视频')
+                    tmp_dl_list = []
+                    for j, url in enumerate(download_list):
+                        tmp_video_name = self.build_filename(p_title, page, ext, j)
+                        tmp_dl_list.append(tmp_video_name)
+                        self.download_video(url, tmp_video_name)
+                    output = self.build_filename(p_title, page, 'mp4')
+                    self.merge_video(output, tmp_dl_list)
             else:
                 ext = 'mp4'
-                output = self.build_filename(p_title, i, ext)
+                output = self.build_filename(p_title, page, ext)
                 video_url, audio_url = download_list
                 if not audio_url:
                     self.download_video(video_url, output)
-                    continue
-                tmp_video_name = self.build_filename(p_title, i, ext, 'video')
-                self.download_video(video_url, tmp_video_name)
-                tmp_audio_name = self.build_filename(p_title, i, ext, 'audio')
-                self.download_video(audio_url, tmp_audio_name)
-                tmp_dl_list = [tmp_video_name, tmp_audio_name]
-                self.merge_video(output, tmp_dl_list)
+                else:
+                    tmp_video_name = self.build_filename(p_title, page, ext, 'video')
+                    self.download_video(video_url, tmp_video_name)
+                    tmp_audio_name = self.build_filename(p_title, page, ext, 'audio')
+                    self.download_video(audio_url, tmp_audio_name)
+                    tmp_dl_list = [tmp_video_name, tmp_audio_name]
+                    self.merge_video(output, tmp_dl_list)
+            filepath = self.remove_download(output)
+            self.download_dm(cid, filepath.replace(f'.{ext}', ''))
 
     def merge_video(self, output, *files):
         if PathUtil.check_path(output):
-            print(f'{output}已存在')
+            PathUtil.remove(output)
             return
         print('正在尝试合并视频，请参考控制台输出')
         FFmpegUtil(CONFIG['FFMPEG_PATH']).merge(*files, output=output)
@@ -97,10 +107,10 @@ class VideoDownload(Base):
         video_list = []
         self.title, self.owner = video_info['title'], video_info['owner']['name']
         for page in video_info['pages']:
-            cid, part = page['cid'], page['part']
             video_list.append({
-                'part': part,
-                'cid': cid,
+                'part': page['part'],
+                'cid': page['cid'],
+                'page': page['page']
             })
         self.p_len = len(video_list)
         return video_list
@@ -133,8 +143,7 @@ class VideoDownload(Base):
 
     def download_video(self, url, filename):
         if PathUtil.check_path(filename):
-            print(f'{filename} exists, stop downloading')
-            return
+            PathUtil.remove(filename)
         retry_times = 2
         while retry_times > 0:
             try:
@@ -152,6 +161,12 @@ class VideoDownload(Base):
 
     def save_video(self, raw_response, filename):
         SaveTool.saveChunk(raw_response, filename)
+
+    def download_dm(self, cid, filepath):
+        request = BilibiliApi.build_dm_api_request(cid)
+        response = RequestUtil.do_request(request, load_json=False)
+        self.before_response(response)
+        SaveTool.saveText(response.raw_response.text, f'{filepath}.xml', encoding=response.raw_response.encoding)
 
 
 class VideoSearch(Base):

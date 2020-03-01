@@ -27,3 +27,11 @@ class PathUtil:
     @staticmethod
     def check_path(path):
         return os.path.exists(path)
+
+    @staticmethod
+    def remove(path):
+        return os.remove(path)
+
+    @staticmethod
+    def rename(tmp_filepath, filepath):
+        os.rename(tmp_filepath, filepath)

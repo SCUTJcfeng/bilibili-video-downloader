@@ -4,7 +4,8 @@ a open-source bilibili video download project
 [![Build Status](https://travis-ci.org/SCUTJcfeng/bilibili-video-downloader.svg?branch=master)](https://travis-ci.org/SCUTJcfeng/bilibili-video-downloader)
 
 ## 说明
-支持最高1080p60的清晰度，支持按 `Up` 下载和按 `av` 号下载， 支持 ffmpeg 自动合并视频
+1. 支持最高1080p60的清晰度，支持按 `Up` 下载和按 `av` 号下载， 支持 ffmpeg 自动合并视频
+2. 自动下载弹幕，格式为 `xml`，支持[在线弹幕转换](http://tiansh.github.io/us-danmaku/bilibili/)
 
 ## 例子
 要下载凉风所有阅片无数的视频
@@ -20,9 +21,8 @@ ORDER = 'pubdate'
 ```
 
 ## requirement
-1. Python >= 3.6, ffmpeg(可选)
+1. Python >= 3.6, `ffmpeg`
 2. `pip install pipenv` 安装 `pipenv`
-3. 安装 `ffmpeg`
 
 ## 配置
 1. 复制 `config.py` 为 `config_local.py`，在 `config_local.py`中修改配置
