@@ -32,7 +32,8 @@ class FFmpegUtil:
         params = [self.ffmpeg]
         for f in files:
             params.extend(['-i', f])
-        # params.extend(['-c', 'copy'])
+        params.extend(['-loglevel', 'quiet'])
+        params.extend(['-c', 'copy'])
         # params.extend(['-c:v', 'copy'])
         # params.extend(['-c:a', 'aac'])
         # params.extend(['-strict', 'experimental'])

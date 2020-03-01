@@ -17,46 +17,65 @@ class Base:
 class VideoDownload(Base):
     def __init__(self, aid):
         self.aid = aid
+        self.title = ''
+        self.owner = ''
+        self.p_len = 0
+
+    def print_vinfo(self):
+        print('Owner:     ', self.owner)
+        print('Title:     ', self.title)
+        print('P_Num:     ', self.p_len)
+        if self.p_len > 1:
+            print('检测到多p视频，将下载全部视频')
+        print()
+
+    def print_pinfo(self, p_title, type_, quality):
+        print('P_Title:   ', p_title)
+        print('Type:      ', type_)
+        print('Quality:   ', quality)
+        print()
+
+    def build_filename(self, p_title, i, ext, j=None):
+        if self.p_len == 1:
+            filename = f'{self.owner}-{self.title}（{p_title}）.{ext}'
+        else:
+            filename = f'{self.owner}-{self.title}（P{i}.{p_title}）.{ext}'
+        if j is not None:
+            filename = f'[{j}]-{filename}'
+        return PathUtil.join_path(CONFIG['DOWNLOAD_PATH'], legitimize(filename))
 
     def run(self):
-        title, owner, video_list = self.get_video_info()
-        if len(video_list) > 1:
-            print('检测到多p视频，将下载全部视频')
-        print('Owner:     ', owner)
-        print('Title:     ', title)
-        print('P_Num:     ', len(video_list))
-        for video_info in video_list:
+        video_list = self.get_video_info()
+        self.print_vinfo()
+        for i, video_info in enumerate(video_list):
             p_title, cid = video_info['part'], video_info['cid']
             download_data = self.get_sign_video_download_info(cid)
-            print()
-            print('P_Title:   ', p_title)
-            print('Type:      ', download_data['type'])
-            print('Quality:   ', BilibiliApi.QUALITY_EXT_MAP[download_data['quality']]['desc'])
+            self.print_pinfo(p_title, download_data['type'], BilibiliApi.QUALITY_EXT_MAP[download_data['quality']]['desc'])
             download_list = download_data['download_list']
             if download_data['type'] == 'durl':
                 ext = BilibiliApi.QUALITY_EXT_MAP[download_data['quality']]['container']
                 if len(download_list) == 1:
-                    output = self.build_filename(f'{owner}-{title}-{p_title}.{ext}')
+                    output = self.build_filename(p_title, i, ext)
                     self.download_video(download_list[0], output)
                     continue
                 print('检测到多段视频')
                 tmp_dl_list = []
-                for i, url in enumerate(download_list):
-                    tmp_video_name = self.build_filename(f'{owner}-{title}-{p_title}-{i}.{ext}')
+                for j, url in enumerate(download_list):
+                    tmp_video_name = self.build_filename(p_title, i, ext, j)
                     tmp_dl_list.append(tmp_video_name)
                     self.download_video(url, tmp_video_name)
-                output = self.build_filename(f'{owner}-{title}-{p_title}.mp4')
+                output = self.build_filename(p_title, i, 'mp4')
                 self.merge_video(output, tmp_dl_list)
             else:
                 ext = 'mp4'
-                output = f'{owner}-{title}-{p_title}.{ext}'
+                output = self.build_filename(p_title, i, ext)
                 video_url, audio_url = download_list
                 if not audio_url:
                     self.download_video(video_url, output)
                     continue
-                tmp_video_name = self.build_filename(f'{owner}-{title}-{p_title}-video.{ext}')
+                tmp_video_name = self.build_filename(p_title, i, ext, 'video')
                 self.download_video(video_url, tmp_video_name)
-                tmp_audio_name = self.build_filename(f'{owner}-{title}-{p_title}-audio.{ext}')
+                tmp_audio_name = self.build_filename(p_title, i, ext, 'audio')
                 self.download_video(audio_url, tmp_audio_name)
                 tmp_dl_list = [tmp_video_name, tmp_audio_name]
                 self.merge_video(output, tmp_dl_list)
@@ -76,14 +95,15 @@ class VideoDownload(Base):
 
     def _decode_video_info(self, video_info):
         video_list = []
-        title, owner = video_info['title'], video_info['owner']['name']
+        self.title, self.owner = video_info['title'], video_info['owner']['name']
         for page in video_info['pages']:
             cid, part = page['cid'], page['part']
             video_list.append({
                 'part': part,
                 'cid': cid,
             })
-        return title, owner, video_list
+        self.p_len = len(video_list)
+        return video_list
 
     def get_video_download_info(self, cid):
         request = BilibiliApi.build_cid_api_request(self.aid, cid)
@@ -110,9 +130,6 @@ class VideoDownload(Base):
         else:
             raise NotImplementedError
         return download_data
-
-    def build_filename(self, filename):
-        return PathUtil.join_path(CONFIG['DOWNLOAD_PATH'], legitimize(filename))
 
     def download_video(self, url, filename):
         if PathUtil.check_path(filename):
